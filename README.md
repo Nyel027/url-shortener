@@ -33,6 +33,28 @@
  #### **Bucket B:** The Frontend Bucket (*url-shortener-frontend011*)
 * Create a bucket with a globally unique ID and allow Public access.
 * Click on the newly created bucket, head to 'Properties', scroll all the way down to 'enable static web hosting'. Turn on the function and input `index.html` & `error.html` in their respective fields.
+* Set bucket policy. 
+
+Next, we have to edit the bucket policy of both buckets.
+
+* Go to the Permissions tab of the bucket
+* Bucket Policy → Edit
+* Paste this policy (replace with your-bucket-name):
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::your-bucket-name/*"
+        }
+    ]
+}
+```
+* Save changes and close.
 
 ### 2. Deploy Lambda Function
 
@@ -115,27 +137,54 @@ If you don't see it, look to the left side of your console and select 'stages' u
 
 ### 4. Deploy Frontend to S3
 
-1. Go to S3 → Your frontend bucket (url-shortener-frontend011)
-2. Upload → Add files → Select your index.html
-3. Click Upload
+* Go to S3 → Your frontend bucket (url-shortener-frontend011)
+* Upload → Add files → Select your index.html
+* Click Upload
 
-Make it Public
+ ***IMPORTANT!! Open the index.html file attached to this repo and edit the API link to your own as highlighted in the imge below***
 
-1. Go to Permissions tab of the bucket
-2. Bucket Policy → Edit
-3. Paste this policy (replace your-bucket-name):
+ ![index_file](images/img3.png)
+
+##
+
+### RESULTS
+
+##
+
+Now, we need to confirm the function is active and works as intended. Paste the following code into your terminal and run it: 
+
+### Shorten a URL
+
+```bash
+curl -X POST \
+  https://your-api-id.execute-api.us-east-1.amazonaws.com/shorten \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com"}'
 ```
+
+Response:
+```json
 {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "PublicReadGetObject",
-            "Effect": "Allow",
-            "Principal": "*",
-            "Action": "s3:GetObject",
-            "Resource": "arn:aws:s3:::url-shortener-frontend-12345/*"
-        }
-    ]
+  "shortUrl": "http://bucket.s3-website-us-east-1.amazonaws.com/abc123",
+  "shortCode": "abc123",
+  "originalUrl": "https://www.example.com"
 }
 ```
-4. Save changes
+
+### Access Short URL
+
+Visit the returned `shortUrl` in your browser to be redirected to the original URL.
+
+
+## Frontend Interface
+
+* Open your S3 static website URL of your frontend bucket in a browser
+* Enter a long URL in the input field
+* Click "Shorten"
+* Copy the generated short URL
+
+Here is a photo of how the frontend should be
+![Frontend-image](images/img4.png)
+
+
+And that's pretty much it.
